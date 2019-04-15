@@ -1,0 +1,98 @@
+Zadání projektu do IKR 2018/2019
+================================
+
+Bodové ohodnocení:   25 bodù
+
+Úkolem je natrénovat model pro identifikaci 31 rùzných osob z obrázku oblièeje
+a hlasové nahrávky. Trénovací vzory jsou k dispozici v archívu na adrese:
+
+https://www.fit.vutbr.cz/study/courses/IKR/public/projekt_2018-2019/IKR_projekt2018-2019.tgz
+
+Tento archív obsahuje dva adresáøe:
+
+train
+dev
+
+a ka¾dý z tìchto adresáøù obsahuje podadresáøe jejími¾ názvy jsou èísla
+od 1 do 31, která odpovídají jednotlivým tøídám - osobám k identifikaci.
+Ka¾dý podadresáø obsahuje trénovací vzory pro danou tøídu ve formátu PNG
+a WAV.
+
+Rozdìlení dat do adresáøù train a dev je mo¾né pou¾ít pro trénování a
+vyhodnocování úspì¹nosti vyvíjeného detektoru, toto rozdìlení v¹ak není
+závazné (napø. pomocí technik jako je jackknifing lze efektivnì trénovat
+i testovat na v¹ech datech). Pøi pokusech o jiné rozdìlení dat mù¾e být
+u¾iteèné respektovat informace o tom, které trénovací vzory byly poøízený
+v rámci jednoho nahrávacího sezení. Jméno ka¾dého souboru je rozdìleno do
+poli pomocí podtr¾ítek (napø. f401_01_f16_i0_0.png), kde první pole (f401)
+je identifikátor osoby a druhé pole je èíslo nahrávacího sezení (01).
+
+Ostrá data, na kterých budou va¹e systémy vyhodnoceny, budou k
+dispozici v pátek, 19. dubna ráno. Tato data budu obsahovat øádovì
+stovky souboru ke zpracování.  Va¹ím úkolem bude automaticky zpracovat
+tato data va¹imi systémy (vìøíme Vám ¾e nebudete podvádìt a dívat se
+na obrázky èí poslouchat nahrávky) a uploadovat  soubory s výsledky do
+WISu. Soubor s výsledky bude ASCII soubor s 33-mi poli na øádku oddìlenými
+mezerou. Tyto pole budou obsahovat popoøadì následující údaje:
+
+ - jméno segmentu (jméno souboru bez pøípony .wav èi .png)
+ - tvrdé rozhodnutí o tøídì, kterým bude celé èíslo s hodnotou od 1 do 31.
+ - následujících 31 polí bude popoøadì obsahovat èíselná skóre odpovídající
+   logaritmickým pravdìpodobnostem jednotlivých tøíd 1 a¾ 31. 
+   (Pokud pou¾ijete klasifikátor jeho¾ výstup se nedá interpretovat
+   pravdìpodobnostnì, nastavte tato pole na hodnotu NaN.
+
+V jakém programovacím jazyce budete implementovat vá¹ detektor èi
+pomocí jakých nástrojù (spousta jich je volnì k dispozici na
+Internetu) budete data zpracovávat zále¾í jen na Vás. Odevzdat mù¾ete
+nìkolik souborù s výsledky (napø. pro systémy rozhodujícím se pouze na
+základì øeèové nahrávky èi pouze obrázku). Maximálnì v¹ak bude zpracováno
+5 takových souborù.
+
+Soubory s výsledky mù¾ete do soboty 20. dubna 24:00 uploadovat do
+WISu. Klíè se správnými odpovìïmi bude zveøejnìn 21. dubna. Své
+systémy potom budete prezentovat v krátké prezentaci (5-10min)
+24. dubna na pøedná¹ce, kde vám budou sdìleny výsledky.
+
+Na tomto projektu budete pracovat ve skupinách (1-3 lidí), do kterých
+se mù¾ete pøihlásit ve WISu. Jména souborù s výsledky pro jednotlivé
+systémy volte tak, aby se podle nich dalo poznat o jaký systém se
+jedná (napø. audio_GMM, image_linear). Ka¾dá skupina uploadne v¹echny
+soubory s výsledky zabalené do jednoho ZIP archívu se jménem
+login1_login2_login3.zip èi login1.zip, podle toho, kolik Vás
+bude ve skupinì. Kromì souborù s výsledky bude archív obsahovat také
+adresáø SRC/, do kterého ulo¾íte soubory se zdrojovými kódy
+implementovaných systémù, a soubor README.txt popisující, jak Va¹e
+výsledky získat.  V souboru README.txt tedy bude uvedeno jak va¹e
+zdrojové kódy zkompilovat, jak va¹e systémy spustit a kde hledat
+výsledné soubory, jaké pøípadné externí nástroje je nutné instalovat a
+jak je pøesnì pou¾ít, atd. Nepøikládejte prosím evaluaèní data.
+
+Inspiraci pro va¹e systémy mù¾ete hledat v archívu demonstraèních pøíkladù
+pro pøedmìt IKR:
+
+https://www.fit.vutbr.cz/study/courses/IKR/public/demos
+
+Zvlá¹tì se podívejte na pøíklad detekce pohlaví z øeèi: demo_genderID.m
+U¾iteèné vám mohou být matlabovské funkce pro naèítaní PNG souborù
+(png2fea.m) a extrakci MFCC pøíznakù z WAV souborù (wav16khz2mfcc.m).
+
+Hodnocení: 
+- v¹e je odevzdáno a nìjakým zpùsobem pracuje: 
+  - ètou se soubory, 
+  - produkuje se skóre
+  - klasifikátor nemusí (a nebude!) pracovat se 100% úspì¹ností. Jsou to 
+    reálná data !
+  - jsou odevzdány v¹echny po¾adované soubory v po¾adovaných formátech. 
+  - na presentaci vysvìtlíte, co by se je¹tì dalo zlep¹it. 
+  ... plný poèet 25 bodù. 
+
+- nìco z vý¹e uvedeného není splnìno ? ... ménì bodù. 
+
+- máte nejlep¹í výsledek ? ... Lahvinka dobrého èerveného pro skupinu. 
+
+- máte nejoriginálnìj¹í pøístup, který zdùvodníte (i kdy¾ tøeba nedosahuje 
+  nejlep¹ího výsledku) ? ... Lahvinka dobrého èerveného pro skupinu. 
+
+
+Poslední modifikace: 27. bøezna 2019
