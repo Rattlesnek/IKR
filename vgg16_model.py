@@ -19,63 +19,52 @@ import confusion_matrix as cnf_m
 import sys
 
 
-def plots(ims, figsize=(12,6), rows=1, interp=False, titles=None):
-    if type(ims[0]) is np.ndarray:
-        ims = np.array(ims).astype(np.uint8)
-        if (ims.shape[-1] != 3):
-            ims = ims.transpose((0,2,3,1))
-    f = plt.figure(figsize=figsize)
-    cols = (len(ims) // rows) if len(ims) % 2 == 0 else len(ims) // rows + 1
-    for i in range(len(ims)):
-        sp = f.add_subplot(rows, cols, i+1)
-        sp.axis('Off')
-        if titles is not None:
-            sp.set_title(titles[i], fontsize=16)
-        plt.imshow(ims[i], interpolation=None if interp else 'none')
-
-
 # PATH TO DATA
-train_path = 'data/train'
-valid_path = 'data/dev' # TODO valid_path is for now the same as test_path
-test_path = 'data/dev'
+train_path = 'data/train_pics_resized_224'
+valid_path = 'data/dev_pics_resized_224' # TODO valid_path is for now the same as test_path
+test_path = 'data/dev_pics_resized_224'
+
 
 classes = [str(i) for i in range(1, 32)]
 
 train_batches = ImageDataGenerator().flow_from_directory(train_path, 
-    target_size=(80,80),
+    target_size=(224,224),
     classes=classes,
     batch_size=31)
 
 valid_batches = ImageDataGenerator().flow_from_directory(valid_path, 
-    target_size=(80,80),
+    target_size=(224,224),
     classes=classes,
     batch_size=31)
 
 test_batches = ImageDataGenerator().flow_from_directory(test_path, 
-    target_size=(80,80),
+    target_size=(224,224),
     classes=classes,
     batch_size=62)
 
 
-# example -- plot of a single train_batch
-# imgs, labels = next(train_batches)
-# plots(imgs, titles=labels)
-# plt.show()
+# BUILD CNN from VGG16 model
 
+vgg16_model = keras.applications.vgg16.VGG16()
 
-# BUILD CNN
-#
-# ONLY EXAMPLE !!! (classification is bad)
-#
-
+# create sequential model with layers from VGG16
 model = Sequential()
-model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(80, 80, 3)))
-model.add(Flatten())
+for i, layer in enumerate(vgg16_model.layers):
+    # remove last layer Dense() -- classification into 1000 categories
+    if i != 22:
+        model.add(layer)
+
+# forbid training of layers
+for layer in model.layers:
+    layer.trainable = False
+
+# add new last layer -- classification into 31 categories
 model.add(Dense(31, activation='softmax'))
 
 print(model.summary())
 
-model.compile(Adam(lr=.0001), 
+
+model.compile(Adam(lr=.0001),
     loss='categorical_crossentropy',
     metrics=['accuracy'])
 
@@ -85,7 +74,7 @@ model.compile(Adam(lr=.0001),
 model.fit_generator(train_batches, steps_per_epoch=6,
     validation_data=valid_batches,
     validation_steps=2, 
-    epochs=5,
+    epochs=14,
     verbose=2)
 
 
@@ -111,4 +100,6 @@ cm = confusion_matrix(test_lab, pred)
 
 cnf_m.plot_confusion_matrix(cm, classes)
 plt.show()
+
+
 
