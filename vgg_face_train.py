@@ -13,7 +13,9 @@ from keras.layers.convolutional import *
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 import matplotlib.pyplot as plt
+import sys
 warnings.simplefilter(action='ignore', category=FutureWarning)
+
 
 import confusion_matrix as cnf_m
 
@@ -104,7 +106,7 @@ test_batches = ImageDataGenerator().flow_from_directory(test_path,
     batch_size=62)
 
 
-model.compile(Adam(lr=.0001),
+model.compile(Adam(lr=.0002),
     loss='categorical_crossentropy',
     metrics=['accuracy'])
 
@@ -113,7 +115,16 @@ model.compile(Adam(lr=.0001),
 model.fit_generator(train_batches, steps_per_epoch=6,
     validation_data=valid_batches,
     validation_steps=2, 
-    epochs=22,
+    epochs=20, # best is 20 with 83% 
     verbose=2)
 
+
+test_imgs, test_labels = next(test_batches)
+np.set_printoptions(threshold=sys.maxsize)
+#print(test_labels)
+
+test_loss = model.evaluate(test_imgs, test_labels, steps=1)
+
+print(model.metrics_names)
+print(test_loss)
 
