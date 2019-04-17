@@ -28,7 +28,7 @@ train_images = np.array(train_images)
 
 
 """
-Train on horizontally flipped pictures too.
+Train on horizontally flipped pictures too - didn't help.
 train_images2 = []
 for image_class in range(1, 32):
     directory_in_str = 'data/train_pics_flipped_horizontally/' + str(image_class) + '/'
