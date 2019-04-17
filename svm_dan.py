@@ -26,6 +26,22 @@ for image_class in range(1, 32):
 train_labels = np.repeat(np.arange(31)+1, len(train_images)/31)
 train_images = np.array(train_images)
 
+
+"""
+Train on horizontally flipped pictures too.
+train_images2 = []
+for image_class in range(1, 32):
+    directory_in_str = 'data/train_pics_flipped_horizontally/' + str(image_class) + '/'
+    directory = os.fsencode(directory_in_str)
+    for file in os.listdir(directory):
+        filename = os.fsdecode(file)
+        if filename.endswith(".png"):
+            file = directory_in_str + filename
+            train_images2.append(cv2.imread(file, 0))
+np.append(train_labels, np.repeat(np.arange(31)+1, len(train_images)/31))
+np.append(train_images, np.array(train_images2))
+"""
+
 test_images = []
 for image_class in range(1, 32):
     directory_in_str = 'data/dev/' + str(image_class) + '/'
@@ -46,17 +62,17 @@ train_images, train_labels = train_images[shuffle], train_labels[shuffle]
 """
 
 winSize = (80, 80)      # Image size.
-cellSize = (10, 10)     # Maybe higher? Give it a try.
 blockSize = (40, 40)    # 2× cellSize, but try also other values.
 blockStride = (40, 40)  # Typically half of blockSize.
-nbins = 25              # Can be increased (e. g. to 18), but 9 is recommended.
+cellSize = (10, 10)     # Maybe higher? Give it a try.
+nbins = 24              # Can be increased (e. g. to 18), but 9 is recommended.
 derivAperture = 1
 winSigma = -1.0
 histogramNormType = 0
 L2HysThreshold = 0.2
 gammaCorrection = 1
 nlevels = 64
-signedGradients = True     # Can be also False, try both.
+signedGradients = True  # Can be also False, try both.
 
 hog = cv2.HOGDescriptor(winSize, blockSize, blockStride, cellSize, nbins, derivAperture, winSigma,
                         histogramNormType, L2HysThreshold, gammaCorrection, nlevels, signedGradients)
@@ -78,8 +94,9 @@ gamma = 0.50625
 svm = cv2.ml.SVM_create()
 svm.setGamma(gamma)
 svm.setC(C)
-svm.setKernel(cv2.ml.SVM_RBF)
-svm.setType(cv2.ml.SVM_C_SVC)
+svm.setKernel(cv2.ml.SVM_INTER)
+svm.setType(cv2.ml.SVM_NU_SVC)
+svm.setNu(0.9)
 
 # Train SVM on training data
 svm.train(hog_descriptors_train, cv2.ml.ROW_SAMPLE, train_labels)
