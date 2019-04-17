@@ -1,6 +1,8 @@
 import os
 import cv2
 import numpy as np
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report, confusion_matrix
 from common import mosaic
 
 
@@ -89,6 +91,21 @@ for image in test_images:
     hog_descriptors_test.append(hog.compute(image))
 hog_descriptors_test = np.squeeze(hog_descriptors_test)
 
+classifier = SVC(C=12.5, kernel='linear', probability=True)
+classifier.fit(hog_descriptors_train, train_labels)
+confidence = classifier.score(hog_descriptors_test, test_labels)
+predictions = classifier.predict(hog_descriptors_test)
+probabilities = classifier.predict_log_proba(hog_descriptors_test)
+
+print(confusion_matrix(test_labels, predictions))
+print(classification_report(test_labels, predictions))
+for maximal in probabilities:
+    print(1 + np.argmax(maximal), ' '.join([str(x) for x in maximal.tolist()]))
+print(confidence)
+
+"""
+OpenCV SVM with nice evaluation of results but without probabilities :(.
+
 C = 12.5
 gamma = 0.50625
 svm = cv2.ml.SVM_create()
@@ -124,3 +141,4 @@ cv2.imwrite("digits-classification.jpg", vis)
 cv2.imshow("Vis", vis)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+"""
