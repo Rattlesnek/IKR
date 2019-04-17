@@ -7,7 +7,7 @@ import collections
 import vgg_face_model as vggf
 
 
-def get_filenames(path='data/train_pics_resized_224', suffix='.png'):
+def get_filenames(*, path, suffix='.png'):
     """ Iterate through directories and yield classes and filenames """
     for fldr in sorted(os.listdir(path), key=lambda fldr: int(fldr)):
         clss = fldr
@@ -19,6 +19,15 @@ def get_filenames(path='data/train_pics_resized_224', suffix='.png'):
                 # check if it is a file with specified suffix 
                 if os.path.isfile(file) and file.endswith(suffix):
                     yield clss, file
+
+
+def save_nparr(arr, path, clss, filename):
+    """ Save np.array to folder 'clss' in 'path' under 'filename' """
+    folder = os.path.join(path, clss)
+    if not os.path.isdir(folder):
+        os.mkdir(folder)
+    file_path = os.path.join(folder, filename)
+    np.save(file_path, arr)
 
 
 def determine_class(arr):
@@ -42,10 +51,14 @@ def print_min(arr):
 database_path = 'data/train_pics_resized_224'
 test_path = 'data/dev_pics_resized_224'
 
-num_classes = 31
+save_path = 'data/np_train'
+
+SAVE_DATABASE = False
+LOAD_DATABASE = True
+
+num_classes = 31 # should stay like this -- 31 people
 
 ##############################################
-
 # test_img = 'data/try_dev_224/1/f401_04_f16_i0_0.png'
 # test_img_repr = vggf.get_img_representation(test_img)
 
@@ -57,7 +70,6 @@ num_classes = 31
 #     database_img_repr = vggf.get_img_representation(file)
 #     cosine[idx] += vggf.findCosineSimilarity(database_img_repr, test_img_repr)
 #     euclid[idx] += vggf.findEuclideanDistance(database_img_repr, test_img_repr)
-
 ###############################################
 
 vgg_descriptor = vggf.create_model_descriptor()
@@ -65,22 +77,64 @@ vgg_descriptor = vggf.create_model_descriptor()
 
 start_time = time.time()
 
-# LOAD DATABASE OF TRAINING DATA (train)
-print('load database')
-
-database_repr = collections.defaultdict(list)
-for clss, file in get_filenames(path=database_path):
-    print(clss, ':', file)
-    database_repr[clss].append(vggf.get_img_representation(vgg_descriptor, file))
 
 
-# EVALUATE TEST IMAGES (dev)
-print('eval test imgs')
+def save_database(vgg_descriptor, database_path, save=False, save_path=None):
+    database_repr = collections.defaultdict(list)
+    for clss, file in get_filenames(path=database_path):
+        print(clss, ':', file)
+        reprz = vggf.get_img_representation(vgg_descriptor, file)
+        if not save:
+            database_repr[clss].append(reprz)
+        else:
+            # pass filename without .png suffix and without path
+            filename = file.split('/')[-1]
+            save_nparr(reprz, save_path, clss, filename[:-4])         
+    if not save:
+        return database_repr 
+
+
+def load_database(save_path):
+    database_repr = collections.defaultdict(list)
+    for clss, file in get_filenames(path=save_path, suffix='.npy'):
+        reprz = np.load(file)
+        database_repr[clss].append(reprz)
+    return database_repr
+
+
+#############################################
+### LOAD DATABASE OF TRAINING DATA (train)
+#############################################
+
+if SAVE_DATABASE:
+    # TODO
+    print('Saving database using VGG-Face to dir:', save_path)
+    save_database(vgg_descriptor, database_path, save=True, save_path=save_path)
+    print('Save finished!\nEnding program!')
+    sys.exit(0)
+
+
+if LOAD_DATABASE:
+    print('Loading database from dir:', save_path)
+    database_repr = load_database(save_path)
+else:
+    print('Generate database using VGG-Face')
+    database_repr = save_database(vgg_descriptor, database_path, save=False)
+
+
+print('DATABASE LOADED')
+
+
+#################################
+### EVALUATE TEST IMAGES (dev)
+#################################
+
+print('EVAL TEST IMGS')
 
 cosine_expected_actual = []
 euclid_expected_actual = []
 for test_clss, test_file in get_filenames(path=test_path):
-    print(test_clss, ':', file)
+    print(test_clss, ':', test_file)
     
     cosine = np.zeros(num_classes)
     euclid = np.zeros(num_classes)

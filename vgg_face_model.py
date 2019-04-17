@@ -8,7 +8,7 @@ from keras.preprocessing import image
 import matplotlib.pyplot as plt
 from keras.models import model_from_json
 import time
-
+import sys
 
 def create_model_descriptor():
     """ Create model descriptor of VGG-Face classificator """
@@ -124,6 +124,10 @@ if __name__ == "__main__":
 
     vgg_descriptor = create_model_descriptor()
     # try a data sample against other data sample
-    verifyFace(vgg_descriptor, "data/train_pics_resized_224/1/f401_01_f16_i0_0.png", "data/dev_pics_resized_224/1/f401_04_f16_i0_0.png")
+    #verifyFace(vgg_descriptor, "data/train_pics_resized_224/1/f401_01_f16_i0_0.png", "data/dev_pics_resized_224/1/f401_04_f16_i0_0.png")
 
-    print(time.time() - start_time)
+    reprz = get_img_representation(vgg_descriptor, "data/train_pics_resized_224/1/f401_01_f16_i0_0.png")
+    np.set_printoptions(threshold=sys.maxsize)
+    print(reprz)
+
+    print('time: ', time.time() - start_time)
