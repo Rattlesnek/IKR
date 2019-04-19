@@ -2,7 +2,7 @@ import warnings
 import numpy as np
 import keras
 from keras import backend as K 
-from keras.models import Sequential
+from keras.models import Sequential, model_from_json
 from keras.layers import Activation, Dropout
 from keras.layers.core import Dense, Flatten
 from keras.optimizers import Adam
@@ -16,115 +16,155 @@ import matplotlib.pyplot as plt
 import sys
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-
 import confusion_matrix as cnf_m
+import argparse
+import os
+
+
+def create_model():
+    model_vgg = Sequential()
+    model_vgg.add(ZeroPadding2D((1,1),input_shape=(224,224, 3)))
+    model_vgg.add(Convolution2D(64, (3, 3), activation='relu'))
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(64, (3, 3), activation='relu'))
+    model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
+
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(128, (3, 3), activation='relu'))
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(128, (3, 3), activation='relu'))
+    model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
+
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(256, (3, 3), activation='relu'))
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(256, (3, 3), activation='relu'))
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(256, (3, 3), activation='relu'))
+    model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
+
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
+    model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
+
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
+    model_vgg.add(ZeroPadding2D((1,1)))
+    model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
+    model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
+
+    model_vgg.add(Convolution2D(4096, (7, 7), activation='relu'))
+    model_vgg.add(Dropout(0.5))
+    model_vgg.add(Convolution2D(4096, (1, 1), activation='relu'))
+    model_vgg.add(Dropout(0.5))
+    model_vgg.add(Convolution2D(2622, (1, 1)))
+    model_vgg.add(Flatten())
+    model_vgg.add(Activation('softmax'))
+
+    model_vgg.load_weights('vgg_face_weights.h5')
+    # model = model_vgg
+
+    model = Sequential()
+    for layer in model_vgg.layers[:-1]:
+        model.add(layer)
+
+    for layer in model.layers:
+        layer.trainable = False
+
+    model.add(Dense(31, activation='softmax'))
+
+    print(model.summary())
+    return model
 
 
 
-model_vgg = Sequential()
-model_vgg.add(ZeroPadding2D((1,1),input_shape=(224,224, 3)))
-model_vgg.add(Convolution2D(64, (3, 3), activation='relu'))
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(64, (3, 3), activation='relu'))
-model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
+def prepare_batches(train_path, valid_path, test_path):
+    classes = [str(i) for i in range(1, 32)]
 
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(128, (3, 3), activation='relu'))
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(128, (3, 3), activation='relu'))
-model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
+    train_batches = ImageDataGenerator().flow_from_directory(train_path, 
+                                                            target_size=(224,224),
+                                                            classes=classes,
+                                                            batch_size=31)
 
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(256, (3, 3), activation='relu'))
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(256, (3, 3), activation='relu'))
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(256, (3, 3), activation='relu'))
-model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
+    valid_batches = ImageDataGenerator().flow_from_directory(valid_path, 
+                                                            target_size=(224,224),
+                                                            classes=classes,
+                                                            batch_size=31)
 
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
-model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
-
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
-model_vgg.add(ZeroPadding2D((1,1)))
-model_vgg.add(Convolution2D(512, (3, 3), activation='relu'))
-model_vgg.add(MaxPooling2D((2,2), strides=(2,2)))
-
-model_vgg.add(Convolution2D(4096, (7, 7), activation='relu'))
-model_vgg.add(Dropout(0.5))
-model_vgg.add(Convolution2D(4096, (1, 1), activation='relu'))
-model_vgg.add(Dropout(0.5))
-model_vgg.add(Convolution2D(2622, (1, 1)))
-model_vgg.add(Flatten())
-model_vgg.add(Activation('softmax'))
-
-model_vgg.load_weights('vgg_face_weights.h5')
-# model = model_vgg
-
-model = Sequential()
-for layer in model_vgg.layers[:-1]:
-    model.add(layer)
-
-for layer in model.layers:
-    layer.trainable = False
-
-model.add(Dense(31, activation='softmax'))
-
-print(model.summary())
+    test_batches = ImageDataGenerator().flow_from_directory(test_path, 
+                                                            target_size=(224,224),
+                                                            classes=classes,
+                                                            batch_size=62)
+    return train_batches, valid_batches, test_batches
 
 
+def execute_training(model_path, weights_path):
 
-# PATH TO DATA
-train_path = 'data/train_pics_resized_224'
-valid_path = 'data/dev_pics_resized_224' # TODO valid_path is for now the same as test_path
-test_path = 'data/dev_pics_resized_224'
+    # PATH TO DATA
+    train_path = 'data/train_pics_resized_224'
+    valid_path = 'data/dev_pics_resized_224'
+    test_path = 'data/dev_pics_resized_224'
+
+    model = create_model()
+
+    train_batches, valid_batches, test_batches = prepare_batches(train_path, valid_path, test_path)
+    
+    model.compile(Adam(lr=.0002),
+                loss='categorical_crossentropy',
+                metrics=['accuracy'])
+
+    # TRAINING OF CNN
+    model.fit_generator(train_batches, steps_per_epoch=6,
+                        validation_data=valid_batches,
+                        validation_steps=2, 
+                        epochs=5, # best is 20 with 83% 
+                        verbose=2)
+
+    test_imgs, test_labels = next(test_batches)
+    # np.set_printoptions(threshold=sys.maxsize)
+    # print(test_labels)
+    test_loss = model.evaluate(test_imgs, test_labels, steps=1)
+
+    print(model.metrics_names)
+    print(test_loss)
+
+    # serialize model to JSON
+    model_json = model.to_json()
+    with open(model_path, "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights(weights_path)
+    print("Saved model to", model_path, weights_path)
 
 
-classes = [str(i) for i in range(1, 32)]
 
-train_batches = ImageDataGenerator().flow_from_directory(train_path, 
-    target_size=(224,224),
-    classes=classes,
-    batch_size=31)
+def execute_prediction(model_path, weights_path):
+    
+    test_path = 'data/dev_pics_resized_224'
+    
+    # load json and create model
+    json_file = open(model_path, 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    model = model_from_json(loaded_model_json)
+    # load weights into new model
+    model.load_weights(weights_path)
+    print("Loaded model from", model_path, weights_path)
 
-valid_batches = ImageDataGenerator().flow_from_directory(valid_path, 
-    target_size=(224,224),
-    classes=classes,
-    batch_size=31)
+    classes = [str(i) for i in range(1, 32)]
+    test_batches = ImageDataGenerator().flow_from_directory(test_path, 
+                                                            target_size=(224,224),
+                                                            classes=classes,
+                                                            batch_size=62)
 
-test_batches = ImageDataGenerator().flow_from_directory(test_path, 
-    target_size=(224,224),
-    classes=classes,
-    batch_size=62)
+    # PREDICTION on test_batches
+    predictions = model.predict_generator(test_batches, steps=1, verbose=2)
 
-
-model.compile(Adam(lr=.0002),
-    loss='categorical_crossentropy',
-    metrics=['accuracy'])
-
-
-# TRAINING OF CNN
-model.fit_generator(train_batches, steps_per_epoch=6,
-    validation_data=valid_batches,
-    validation_steps=2, 
-    epochs=20, # best is 20 with 83% 
-    verbose=2)
-
-
-test_imgs, test_labels = next(test_batches)
-np.set_printoptions(threshold=sys.maxsize)
-#print(test_labels)
-
-test_loss = model.evaluate(test_imgs, test_labels, steps=1)
-
-print(model.metrics_names)
-print(test_loss)
+    return predictions
 
