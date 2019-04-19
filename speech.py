@@ -47,7 +47,7 @@ for i in range(N_CLASSES):
             logpdfs[c] = logpdf_gmm(x, weights[c], mus[c], covs[c])
             logpdfs[c] = sum(logpdfs[c]) + np.log(priors[c])
         res = np.argmax(logpdfs)
-        #eval
+
         if res == i:
             train_ok_count+=1
 
@@ -60,8 +60,8 @@ for i in range(N_CLASSES):
             logpdfs[c] = logpdf_gmm(x, weights[c], mus[c], covs[c])
             logpdfs[c] = sum(logpdfs[c]) + np.log(priors[c])
         res = np.argmax(logpdfs)
-        hist.append(res)
-        #eval
+
+
         if res == i:
             print("Good")
             ok_count+=1
