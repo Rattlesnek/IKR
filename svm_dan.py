@@ -1,9 +1,13 @@
-import os
+import glob
 import cv2
 import numpy as np
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report, confusion_matrix
-from common import mosaic
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+from joblib import dump, load
+
+
+number_of_classes = 31
 
 
 def deskew(img):
@@ -11,100 +15,87 @@ def deskew(img):
     if abs(m['mu02']) < 1e-2:
         return img.copy()
     skew = m['mu11']/m['mu02']
-    M = np.float32([[1, skew, -0.5*80*skew], [0, 1, 0]])
-    img = cv2.warpAffine(img, M, (80, 80), flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR)
+    new_m = np.float32([[1, skew, -0.5*80*skew], [0, 1, 0]])
+    img = cv2.warpAffine(img, new_m, (80, 80), flags=cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR)
     return img
 
 
-train_images = []
-for image_class in range(1, 32):
-    directory_in_str = 'data/train/' + str(image_class) + '/'
-    directory = os.fsencode(directory_in_str)
-    for file in os.listdir(directory):
-        filename = os.fsdecode(file)
-        if filename.endswith(".png"):
-            file = directory_in_str + filename
-            train_images.append(cv2.imread(file, 0))
-train_labels = np.repeat(np.arange(31)+1, len(train_images)/31)
-train_images = np.array(train_images)
+def load_folder(folder_name):
+    images = []
+    for file_name in glob.iglob('data/' + folder_name + '/**/*.png', recursive=True):
+        images.append(cv2.imread(file_name, 0))
+    images = np.array(images)
+    images = list(map(deskew, images))
+    return images
 
 
-"""
-Train on horizontally flipped pictures too - didn't help.
-train_images2 = []
-for image_class in range(1, 32):
-    directory_in_str = 'data/train_pics_flipped_horizontally/' + str(image_class) + '/'
-    directory = os.fsencode(directory_in_str)
-    for file in os.listdir(directory):
-        filename = os.fsdecode(file)
-        if filename.endswith(".png"):
-            file = directory_in_str + filename
-            train_images2.append(cv2.imread(file, 0))
-np.append(train_labels, np.repeat(np.arange(31)+1, len(train_images)/31))
-np.append(train_images, np.array(train_images2))
-"""
+def load_data():
+    images1 = load_folder("train")
+    labels1 = np.repeat(np.arange(number_of_classes) + 1, len(images1) / number_of_classes)
+    images2 = load_folder("dev")
+    labels2 = np.repeat(np.arange(number_of_classes) + 1, len(images2) / number_of_classes)
+    all_images = np.concatenate((images1, images2), axis=0)
+    all_labels = np.concatenate((labels1, labels2), axis=0)
+    rand = np.random.RandomState(number_of_classes)
+    shuffle = rand.permutation(len(all_images))
+    all_images, all_labels = all_images[shuffle], all_labels[shuffle]
+    hist_of_grad = create_hog()
+    hog_descriptors = get_hog(hist_of_grad, all_images)
+    return hog_descriptors, all_labels
 
-test_images = []
-for image_class in range(1, 32):
-    directory_in_str = 'data/dev/' + str(image_class) + '/'
-    directory = os.fsencode(directory_in_str)
-    for file in os.listdir(directory):
-        filename = os.fsdecode(file)
-        if filename.endswith(".png"):
-            file = directory_in_str + filename
-            test_images.append(cv2.imread(file, 0))
-test_labels = np.repeat(np.arange(31)+1, len(test_images)/31)
-test_images = np.array(test_images)
 
-"""
-Shuffling the training data - didn't help.
-rand = np.random.RandomState(31)
-shuffle = rand.permutation(len(train_images))
-train_images, train_labels = train_images[shuffle], train_labels[shuffle]
-"""
+def create_hog():
+    win_size = (80, 80)  # Image size.
+    block_size = (40, 40)  # 2× cellSize, but try also other values.
+    block_stride = (40, 40)  # Typically half of blockSize.
+    cell_size = (10, 10)  # Maybe higher? Give it a try.
+    n_bins = 24  # Can be increased (e. g. to 18), but 9 is recommended.
+    deriv_aperture = 1
+    win_sigma = -1.0
+    histogram_norm_type = 0
+    l2_hys_threshold = 0.2
+    gamma_correction = 1
+    n_levels = 64
+    signed_gradients = True  # Can be also False, try both.
+    return cv2.HOGDescriptor(win_size, block_size, block_stride, cell_size, n_bins, deriv_aperture, win_sigma,
+                             histogram_norm_type, l2_hys_threshold, gamma_correction, n_levels, signed_gradients)
 
-winSize = (80, 80)      # Image size.
-blockSize = (40, 40)    # 2× cellSize, but try also other values.
-blockStride = (40, 40)  # Typically half of blockSize.
-cellSize = (10, 10)     # Maybe higher? Give it a try.
-nbins = 24              # Can be increased (e. g. to 18), but 9 is recommended.
-derivAperture = 1
-winSigma = -1.0
-histogramNormType = 0
-L2HysThreshold = 0.2
-gammaCorrection = 1
-nlevels = 64
-signedGradients = True  # Can be also False, try both.
 
-hog = cv2.HOGDescriptor(winSize, blockSize, blockStride, cellSize, nbins, derivAperture, winSigma,
-                        histogramNormType, L2HysThreshold, gammaCorrection, nlevels, signedGradients)
+def get_hog(hog, images):
+    hog_descriptors = []
+    for image in images:
+        hog_descriptors.append(hog.compute(image))
+    return np.squeeze(hog_descriptors)
 
-train_images = list(map(deskew, train_images))
 
-hog_descriptors_train = []
-for image in train_images:
-    hog_descriptors_train.append(hog.compute(image))
-hog_descriptors_train = np.squeeze(hog_descriptors_train)
+def train_model():
+    hog_descriptors, labels = load_data()
+    classifier = SVC(C=12.5, kernel='linear', probability=True)
+    classifier.fit(hog_descriptors, labels)
+    dump(classifier, 'models/hog_svm.joblib')
 
-hog_descriptors_test = []
-for image in test_images:
-    hog_descriptors_test.append(hog.compute(image))
-hog_descriptors_test = np.squeeze(hog_descriptors_test)
 
-classifier = SVC(C=12.5, kernel='linear', probability=True)
-classifier.fit(hog_descriptors_train, train_labels)
-confidence = classifier.score(hog_descriptors_test, test_labels)
-predictions = classifier.predict(hog_descriptors_test)
-probabilities = classifier.predict_log_proba(hog_descriptors_test)
+def test_model():
+    hog_descriptors, labels = load_data()
+    train_hog, test_hog, train_labels, test_labels = train_test_split(hog_descriptors, labels, test_size=0.20)
+    classifier = SVC(C=12.5, kernel='linear', probability=True)
+    classifier.fit(train_hog, train_labels)
+    confidence = classifier.score(test_hog, test_labels)
+    predictions = classifier.predict(test_hog)
+    print("Accuracy: " + str(confidence))
+    print(classification_report(test_labels, predictions))
 
-print(confusion_matrix(test_labels, predictions))
-print(classification_report(test_labels, predictions))
-for maximal in probabilities:
-    print(1 + np.argmax(maximal), ' '.join([str(x) for x in maximal.tolist()]))
-print(confidence)
+
+def predict_data(model_path):
+    test_images = load_folder('eval')
+    classifier = load(model_path)
+    return classifier.predict_log_proba(test_images)
+
 
 """
 OpenCV SVM with nice evaluation of results but without probabilities :(.
+
+from common import mosaic
 
 C = 12.5
 gamma = 0.50625

@@ -1,64 +1,57 @@
-import os
+import glob
 import numpy as np
-from sklearn.model_selection import train_test_split
+import vgg_face_model as vfm
 from sklearn.svm import SVC
-# from sklearn.metrics import classification_report
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
 from joblib import dump, load
+
 
 number_of_classes = 31
 
 
-def load_train_images(folder_name):
+def load_folder(folder_name):
+    model = vfm.create_model_descriptor()
     images = []
-    for image_class in range(1, number_of_classes+1):
-        directory_in_str = 'data/' + folder_name + '/' + str(image_class) + '/'
-        directory = os.fsencode(directory_in_str)
-        for file in os.listdir(directory):
-            filename = os.fsdecode(file)
-            if filename.endswith(".npy"):
-                file = directory_in_str + filename
-                images.append(np.load(file))
-    return np.array(images), np.repeat(np.arange(number_of_classes)+1, len(images)/number_of_classes)
+    for filename in glob.iglob('data/' + folder_name + '/**/*.png', recursive=True):
+        vector = vfm.get_img_representation(model, filename)
+        images.append(vector)
+    images = np.array(images)
+    return images
 
 
-def load_test_images(folder_name):
-    images = []
-    directory_in_str = folder_name + '/'
-    directory = os.fsencode(directory_in_str)
-    for file in os.listdir(directory):
-        filename = os.fsdecode(file)
-        if filename.endswith(".npy"):
-            file = directory_in_str + filename
-            images.append(np.load(file))
-    return np.array(images)
-
-
-def process_train_data():
-    images1, labels1 = load_train_images("np_train")
-    images2, labels2 = load_train_images("np_dev")
+def load_data():
+    images1 = load_folder("train_pics_resized_224")
+    labels1 = np.repeat(np.arange(number_of_classes) + 1, len(images1) / number_of_classes)
+    images2 = load_folder("dev_pics_resized_224")
+    labels2 = np.repeat(np.arange(number_of_classes) + 1, len(images2) / number_of_classes)
     all_images = np.concatenate((images1, images2), axis=0)
     all_labels = np.concatenate((labels1, labels2), axis=0)
     rand = np.random.RandomState(number_of_classes)
     shuffle = rand.permutation(len(all_images))
     all_images, all_labels = all_images[shuffle], all_labels[shuffle]
-    return train_test_split(all_images, all_labels, test_size=0.50)
+    return all_images, all_labels
 
 
 def train_model():
-    train_images, test_images, train_labels, test_labels = process_train_data()
+    images, labels = load_data()
+    classifier = SVC(gamma='scale', C=10, kernel='rbf', probability=True)
+    classifier.fit(images, labels)
+    dump(classifier, 'models/vgg_svm.joblib')
+
+
+def test_model():
+    images, labels = load_data()
+    train_images, test_images, train_labels, test_labels = train_test_split(images, labels, test_size=0.20)
     classifier = SVC(gamma='scale', C=10, kernel='rbf', probability=True)
     classifier.fit(train_images, train_labels)
-    dump(classifier, 'svm_extension.joblib')
-    # confidence = classifier.score(test_images, test_labels)
-    # predictions = classifier.predict(test_images)
-    # print("Accuracy: " + str(confidence))
-    # print(classification_report(test_labels, predictions))
+    confidence = classifier.score(test_images, test_labels)
+    predictions = classifier.predict(test_images)
+    print("Accuracy: " + str(confidence))
+    print(classification_report(test_labels, predictions))
 
 
-def evaluate_data():
-    test_images = load_test_images('test')
-    classifier = load('svm_extension.joblib')
+def predict_data(model_path):
+    test_images = load_folder('eval_pics_resized_224')
+    classifier = load(model_path)
     return classifier.predict_log_proba(test_images)
-
-
-print(evaluate_data())

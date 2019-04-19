@@ -1,7 +1,10 @@
 import sys
 import argparse
+import numpy as np
 
 import vgg_face_train as vft
+import svm_extension as vgg_svm
+import svm_dan as hog_svm
 
 
 def training(model_name):
@@ -15,8 +18,7 @@ def training(model_name):
 
     elif model_name.upper() == 'VGG+SVM':
         print('Using VGG + SVM')
-        
-        ...
+        vgg_svm.train_model()
 
     elif model_name.upper() == 'SVM':
         print('Using HoG + SVM')
@@ -27,34 +29,48 @@ def training(model_name):
         print('ERROR: Unrecognized model', model_name, file=sys.stderr)
         sys.exit(1)
 
+
+def combine_results(image_results, audio_results):
+    combined_results = []
+    for index in range(0, len(image_results)):
+        combined_results.append(image_results[index] + audio_results[index] -
+                                image_results[index] * audio_results[index])
+    return combined_results
+
+
+def print_results(score):
+    output = open("eval_score.txt", "w")
+    indices = np.argmax(score, axis=1)
+    for index in range(0, len(score)):
+        output.write('eval_' + "{:05d}".format(index+1) + ' ' +
+                     str(indices[index]+1) + ' ' +
+                     ' '.join([str(x) for x in score[index].tolist()]) + '\n')
+    output.close()
 
 
 def prediction(model_name):
-    
+    predict = None
     if model_name.upper() == 'VGG':
         print('Using overtrained VGG')
-
         model_path = 'models/vgg_overtrained.json'
         weights_path = 'models/vgg_overtrained.h5'
         predict = vft.execute_prediction(model_path, weights_path)
-        print(predict)
-
 
     elif model_name.upper() == 'VGG+SVM':
         print('Using VGG + SVM')
-        
-        ...
+        model_path = 'models/vgg_svm.joblib'
+        predict = vgg_svm.predict_data(model_path)
 
     elif model_name.upper() == 'SVM':
         print('Using HoG + SVM')
-
-        ...
+        model_path = 'models/hog_svm.joblib'
+        predict = hog_svm.predict_data(model_path)
 
     else:
         print('ERROR: Unrecognized model', model_name, file=sys.stderr)
         sys.exit(1)
 
-
+    return predict
 
 
 if __name__ == '__main__':
@@ -78,6 +94,8 @@ if __name__ == '__main__':
         # TRAIN
         training(args.model)
     elif args.predict:
-        # PREDICt
-        prediction(args.model)
+        # PREDICT
+        results = prediction(args.model)
+        print_results(results)
+
 
