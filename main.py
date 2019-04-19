@@ -3,27 +3,25 @@ import argparse
 import numpy as np
 
 import vgg_face_train as vft
-import svm_extension as vgg_svm
-import svm_dan as hog_svm
+import svm_vgg
+import svm_hog
 
 
 def training(model_name):
     
     if model_name.upper() == 'VGG':
         print('Using overtrained VGG')
-
         model_path = 'models/vgg_overtrained.json'
         weights_path = 'models/vgg_overtrained.h5'
         vft.execute_training(model_path, weights_path)
 
     elif model_name.upper() == 'VGG+SVM':
         print('Using VGG + SVM')
-        vgg_svm.train_model()
+        svm_vgg.train_model()
 
     elif model_name.upper() == 'SVM':
         print('Using HoG + SVM')
-
-        ...
+        svm_hog.train_model()
 
     else:
         print('ERROR: Unrecognized model', model_name, file=sys.stderr)
@@ -49,7 +47,6 @@ def print_results(score):
 
 
 def prediction(model_name):
-    predict = None
     if model_name.upper() == 'VGG':
         print('Using overtrained VGG')
         model_path = 'models/vgg_overtrained.json'
@@ -59,12 +56,12 @@ def prediction(model_name):
     elif model_name.upper() == 'VGG+SVM':
         print('Using VGG + SVM')
         model_path = 'models/vgg_svm.joblib'
-        predict = vgg_svm.predict_data(model_path)
+        predict = svm_vgg.predict_data(model_path)
 
     elif model_name.upper() == 'SVM':
         print('Using HoG + SVM')
         model_path = 'models/hog_svm.joblib'
-        predict = hog_svm.predict_data(model_path)
+        predict = svm_hog.predict_data(model_path)
 
     else:
         print('ERROR: Unrecognized model', model_name, file=sys.stderr)
