@@ -1,10 +1,11 @@
 import sys
+import os
 import argparse
 import numpy as np
 
-import vgg_face_train as vft
-import svm_vgg
-import svm_hog
+#import vgg_face_train as vft
+#import svm_vgg
+#import svm_hog
 
 
 def training(model_name):
@@ -68,8 +69,13 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--train', action='store_true', help='train model and save it')
     parser.add_argument('-p', '--predict', action='store_true', help='load model and predict')
     parser.add_argument('-m', '--model', help='specify model for training / predicting')
+    parser.add_argument('-s', '--speech', action='store_true', help='speech - train and predict')
     args = parser.parse_args()
     
+    if args.speech:
+        os.system("python2 speech.py 1>/dev/null 2>/dev/null")
+        exit(0)
+
     if not args.model:
         print('ERROR: Model not specified: use --model (-m)', file=sys.stderr)
         print('       Available models: vgg, vgg+svm, hog+svm', file=sys.stderr)
@@ -77,10 +83,11 @@ if __name__ == '__main__':
 
     if not (args.train or args.predict) or (args.train and args.predict):
         print('ERROR: Need to specify only one argument: --train (-t) / --predict (-p)', file=sys.stderr)
-        sys.exit(1)    
+        sys.exit(1)
 
     if args.train:
         training(args.model)
     elif args.predict:
         results = prediction(args.model)
         print_results(args.model, results)
+

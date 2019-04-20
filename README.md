@@ -29,7 +29,9 @@ The model must be specified using `-m MODEL` or `--model MODEL`. Instead of `MOD
 * scikit-learn - `pip install scikit-learn`
 * Keras - `pip install keras`
 * joblib - `pip install joblib`
-* VGG-Face model weights - https://drive.google.com/file/d/1CPSeum3HpopfomUEK1gybeuIVoeJT_Eo/view
+* **VGG-Face** model weights 
+  * https://drive.google.com/file/d/1CPSeum3HpopfomUEK1gybeuIVoeJT_Eo/view 
+  * paste to folder where whole project is located
 * maybe others :)
 
 ## Get whole project
