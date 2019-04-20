@@ -68,6 +68,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--train', action='store_true', help='train model and save it')
     parser.add_argument('-p', '--predict', action='store_true', help='load model and predict')
     parser.add_argument('-m', '--model', help='specify model for training / predicting')
+    parser.add_agumentt('-s', '--speech', help='train and predict for speech')
     args = parser.parse_args()
     
     if not args.model:
@@ -77,12 +78,13 @@ if __name__ == '__main__':
 
     if not (args.train or args.predict) or (args.train and args.predict):
         print('ERROR: Need to specify only one argument: --train (-t) / --predict (-p)', file=sys.stderr)
-        sys.exit(1)    
+        sys.exit(1)
 
     if args.train:
         training(args.model)
+    if args.speech:
+        os.system("python2 speech.py 1>/dev/null 2>/dev/null")
     elif args.predict:
         results = prediction(args.model)
         print_results(args.model, results)
-        os.system("python2 speech.py 1>/dev/null 2>/dev/null")
 
