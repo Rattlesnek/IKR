@@ -8,7 +8,8 @@ usage: main.py [-h] [-t] [-p] [-m MODEL]
 optional arguments:
   -h, --help            show this help message and exit
   -t, --train           train model and save it (speech classifier doesn't save model)
-  -p, --predict         load model and predict for both images and speech
+  -p, --predict         load model and predict
+  -s, --spech		train model and predict for speech data
   -m MODEL, --model MODEL
                         specify model for training / predicting
 
