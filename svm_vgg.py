@@ -14,6 +14,7 @@ def load_folder(folder_name):
     model = vfm.create_model_descriptor()
     images = []
     for filename in glob.iglob('data/' + folder_name + '/**/*.png', recursive=True):
+        print(filename)
         vector = vfm.get_img_representation(model, filename)
         images.append(vector)
     images = np.array(images)

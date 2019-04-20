@@ -23,16 +23,18 @@ def deskew(img):
 def load_folder(folder_name):
     images = []
     for file_name in glob.iglob('data/' + folder_name + '/**/*.png', recursive=True):
+        print(file_name)
         images.append(cv2.imread(file_name, 0))
     images = np.array(images)
-    images = list(map(deskew, images))
     return images
 
 
 def load_data():
-    images1 = load_folder("train")
+    images1 = load_folder("train_pics")
+    images1 = list(map(deskew, images1))
     labels1 = np.repeat(np.arange(number_of_classes) + 1, len(images1) / number_of_classes)
-    images2 = load_folder("dev")
+    images2 = load_folder("dev_pics")
+    images2 = list(map(deskew, images2))
     labels2 = np.repeat(np.arange(number_of_classes) + 1, len(images2) / number_of_classes)
     all_images = np.concatenate((images1, images2), axis=0)
     all_labels = np.concatenate((labels1, labels2), axis=0)
@@ -77,7 +79,7 @@ def train_model():
 
 def test_model():
     hog_descriptors, labels = load_data()
-    train_hog, test_hog, train_labels, test_labels = train_test_split(hog_descriptors, labels, test_size=0.20)
+    train_hog, test_hog, train_labels, test_labels = train_test_split(hog_descriptors, labels, test_size=0.50)
     classifier = SVC(C=12.5, kernel='linear', probability=True)
     classifier.fit(train_hog, train_labels)
     confidence = classifier.score(test_hog, test_labels)
