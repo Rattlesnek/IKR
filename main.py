@@ -19,7 +19,7 @@ def training(model_name):
         print('Using VGG + SVM')
         svm_vgg.train_model()
 
-    elif model_name.upper() == 'SVM':
+    elif model_name.upper() == 'HOG+SVM':
         print('Using HoG + SVM')
         svm_hog.train_model()
 
@@ -36,8 +36,9 @@ def combine_results(image_results, audio_results):
     return combined_results
 
 
-def print_results(score):
-    output = open("eval_score.txt", "w")
+def print_results(model_name, score):
+    model_name = 'eval/eval_score_' + model_name.replace('+', '_').lower() + '.txt'
+    output = open(model_name, 'w')
     indices = np.argmax(score, axis=1)
     for index in range(0, len(score)):
         output.write('eval_' + "{:05d}".format(index+1) + ' ' +
@@ -55,12 +56,12 @@ def prediction(model_name):
 
     elif model_name.upper() == 'VGG+SVM':
         print('Using VGG + SVM')
-        model_path = 'models/vgg_svm.joblib'
+        model_path = 'models/svm_vgg.joblib'
         predict = svm_vgg.predict_data(model_path)
 
-    elif model_name.upper() == 'SVM':
+    elif model_name.upper() == 'HOG+SVM':
         print('Using HoG + SVM')
-        model_path = 'models/hog_svm.joblib'
+        model_path = 'models/svm_hog.joblib'
         predict = svm_hog.predict_data(model_path)
 
     else:
@@ -71,7 +72,6 @@ def prediction(model_name):
 
 
 if __name__ == '__main__':
-    # parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--train', action='store_true', help='train model and save it')
     parser.add_argument('-p', '--predict', action='store_true', help='load model and predict')
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     
     if not args.model:
         print('ERROR: Model not specified: use --model (-m)', file=sys.stderr)
-        print('       Available models: vgg, vgg+svm, svm', file=sys.stderr)
+        print('       Available models: vgg, vgg+svm, hog+svm', file=sys.stderr)
         sys.exit(1)
 
     if not (args.train or args.predict) or (args.train and args.predict):
@@ -88,11 +88,7 @@ if __name__ == '__main__':
         sys.exit(1)    
 
     if args.train:
-        # TRAIN
         training(args.model)
     elif args.predict:
-        # PREDICT
         results = prediction(args.model)
-        print_results(results)
-
-
+        print_results(args.model, results)

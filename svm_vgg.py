@@ -37,7 +37,7 @@ def train_model():
     images, labels = load_data()
     classifier = SVC(gamma='scale', C=10, kernel='rbf', probability=True)
     classifier.fit(images, labels)
-    dump(classifier, 'models/vgg_svm.joblib')
+    dump(classifier, 'models/svm_vgg.joblib')
 
 
 def test_model():
