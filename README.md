@@ -1,6 +1,4 @@
-# IKR
-World's best classifier!
-
+# IKR - World's best classifier!
 
 ## Usage
 ```
@@ -14,27 +12,28 @@ optional arguments:
                         specify model for training / predicting
 ```
 
+## Models
 
-## Poznamky
+The model must be specified using `-m MODEL` or `--model MODEL`. Instead of `MODEL` insert one of the following available models.
 
-Stale musite zavolat `main.py` s `-m MODEL` a urcit ci chcete trenovat alebo predikovat pomocou `-t` alebo `-p`
-
-`MODEL` moze byt bud:
-* `VGG`
-* `VGG+SVM`
-* `SVM`
-* ...
-* doplnte dalsie modely ktore mate
+### Face recognition models:
+* `VGG` - model created from **VGG-Face** model using "transfer learing" technique
+* `VGG+SVM` - model created using **VGG-Face** model as image encoder followed by **SVM** for classification
+* `SVM` - model created using **HoG** in combination with **SVM**
 
 
-V `main.py` su dve funkcie:
-* `training()`
-* `prediction()`
+## Dependencies
 
-Do oboch doplnte zavolanie funkcie z vasho modulu, ktora je na trenovanie / predikovanie.
-Inspirujte sa tym ako je zavolane `vtf.execute_training()` a `vtf.execute_prediction()`.
 
-`vtf.execute_training()` ma ako parametre cestu k modelu kde sa ulozi novy natrenovany model.
-`vtf.execute_prediction()` ma ako parametre cestu k modelu ktory sa nacita a nasledne sa pomocou neho predukuje.
+* numpy - `pip install numpy`
+* OpenCV - `pip install opencv`
+* scikit-learn - `pip install scikit-learn`
+* Keras - `pip install keras`
+* joblib - `pip install joblib`
+* VGG-Face model weights - https://drive.google.com/file/d/1CPSeum3HpopfomUEK1gybeuIVoeJT_Eo/view
+* maybe others :)
 
+## Get whole project
+
+This link:
 
