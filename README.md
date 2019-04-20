@@ -19,11 +19,10 @@ The model must be specified using `-m MODEL` or `--model MODEL`. Instead of `MOD
 ### Face recognition models:
 * `VGG` - model created from **VGG-Face** model using "transfer learing" technique
 * `VGG+SVM` - model created using **VGG-Face** model as image encoder followed by **SVM** for classification
-* `SVM` - model created using **HoG** in combination with **SVM**
+* `HOG+SVM` - model created using **HoG** in combination with **SVM**
 
 
 ## Dependencies
-
 
 * numpy - `pip install numpy`
 * OpenCV - `pip install opencv`
@@ -35,8 +34,4 @@ The model must be specified using `-m MODEL` or `--model MODEL`. Instead of `MOD
 
 ## Get whole project
 
-This link:
-
-`svm_hog.train_model()` natrenuje model pomoci HoG a nasledne SVM a ulozi ho do slozky eval.
-`svm_hog.predict_data()` parametrem funkci predejte cestu k natrenovanemu modelu a on vyhodnoti evaluacni data.
-
+To run training and prediction download the whole project from this link:
