@@ -1,5 +1,4 @@
 from ikrlib import wav16khz2mfcc, logpdf_gauss, train_gmm, logpdf_gmm, logistic_sigmoid
-import matplotlib.pyplot as plt
 import scipy.linalg
 import numpy as np
 from numpy.random import randint
