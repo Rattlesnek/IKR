@@ -3,9 +3,9 @@ import os
 import argparse
 import numpy as np
 
-#import vgg_face_train as vft
-#import svm_vgg
-#import svm_hog
+import vgg_face_train as vft
+import svm_vgg
+import svm_hog
 
 
 def training(model_name):
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     
     if args.speech:
         os.system("python2 speech.py 1>/dev/null 2>/dev/null")
-        exit(0)
+        sys.exit(0)
 
     if not args.model:
         print('ERROR: Model not specified: use --model (-m)', file=sys.stderr)
