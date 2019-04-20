@@ -28,14 +28,6 @@ def training(model_name):
         sys.exit(1)
 
 
-def combine_results(image_results, audio_results):
-    combined_results = []
-    for index in range(0, len(image_results)):
-        combined_results.append(image_results[index] + audio_results[index] -
-                                image_results[index] * audio_results[index])
-    return combined_results
-
-
 def print_results(model_name, score):
     model_name = 'eval/eval_score_' + model_name.replace('+', '_').lower() + '.txt'
     output = open(model_name, 'w')

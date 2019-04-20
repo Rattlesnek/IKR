@@ -22,7 +22,7 @@ Stale musite zavolat `main.py` s `-m MODEL` a urcit ci chcete trenovat alebo pre
 `MODEL` moze byt bud:
 * `VGG`
 * `VGG+SVM`
-* `SVM`
+* `HOG+SVM`
 * ...
 * doplnte dalsie modely ktore mate
 
@@ -35,6 +35,11 @@ Do oboch doplnte zavolanie funkcie z vasho modulu, ktora je na trenovanie / pred
 Inspirujte sa tym ako je zavolane `vtf.execute_training()` a `vtf.execute_prediction()`.
 
 `vtf.execute_training()` ma ako parametre cestu k modelu kde sa ulozi novy natrenovany model.
-`vtf.execute_prediction()` ma ako parametre cestu k modelu ktory sa nacita a nasledne sa pomocou neho predukuje.
+`vtf.execute_prediction()` ma ako parametre cestu k modelu ktory sa nacita a nasledne sa pomocou neho predikuje.
 
+`svm_vgg.train_model()` natrenuje model pomoci VGG a nasledne SVM a ulozi ho do slozky eval.
+`svm_vgg.predict_data()` parametrem funkci predejte cestu k natrenovanemu modelu a on vyhodnoti evaluacni data.
+
+`svm_hog.train_model()` natrenuje model pomoci HoG a nasledne SVM a ulozi ho do slozky eval.
+`svm_hog.predict_data()` parametrem funkci predejte cestu k natrenovanemu modelu a on vyhodnoti evaluacni data.
 
