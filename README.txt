@@ -29,6 +29,8 @@ Face recognition models:
 
 DEPENDENCIES
 
+* python3         - for face recognition
+* python2         - for speech recognition
 * numpy           - pip install numpy
 * scipy	          - pip install scipy
 * OpenCV          - pip install opencv
