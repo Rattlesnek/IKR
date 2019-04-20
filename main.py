@@ -69,7 +69,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--train', action='store_true', help='train model and save it')
     parser.add_argument('-p', '--predict', action='store_true', help='load model and predict')
     parser.add_argument('-m', '--model', help='specify model for training / predicting')
-    parser.add_argument('-s', '--speech', help='speech - train and predict')
+    parser.add_argument('-s', '--speech', action='store_true', help='speech - train and predict')
     args = parser.parse_args()
     
     if args.speech:
