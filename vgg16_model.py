@@ -14,7 +14,6 @@ from keras.layers.convolutional import *
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 import matplotlib.pyplot as plt
-import confusion_matrix as cnf_m
 
 import sys
 
@@ -81,25 +80,4 @@ model.fit_generator(train_batches, steps_per_epoch=6,
 # PREDICTION on test_batches
 
 predictions = model.predict_generator(test_batches, steps=1, verbose=2)
-
-test_imgs, test_labels = next(test_batches)
-
-# convert prediction labels and test labels
-# so that confusion matrix is able to process it
-pred = cnf_m.convert_labels(predictions)
-test_lab = cnf_m.convert_labels(test_labels)
-
-# np.set_printoptions(threshold=sys.maxsize)
-# print(predictions)
-# print(pred)
-
-
-# PLOT CONFUSION MATRIX 
-
-cm = confusion_matrix(test_lab, pred)
-
-cnf_m.plot_confusion_matrix(cm, classes)
-plt.show()
-
-
 

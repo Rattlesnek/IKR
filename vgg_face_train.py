@@ -12,11 +12,11 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.convolutional import *
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
+from keras.preprocessing.image import load_img, img_to_array
 import matplotlib.pyplot as plt
 import sys
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-import confusion_matrix as cnf_m
 import argparse
 import os
 
@@ -107,7 +107,7 @@ def prepare_batches(train_path, valid_path, test_path):
 def execute_training(model_path, weights_path):
 
     # PATH TO DATA
-    train_path = 'data/train_pics_resized_224'
+    train_path = 'data/data_pics_resized_224'
     valid_path = 'data/dev_pics_resized_224'
     test_path = 'data/dev_pics_resized_224'
 
@@ -115,21 +115,21 @@ def execute_training(model_path, weights_path):
 
     train_batches, valid_batches, test_batches = prepare_batches(train_path, valid_path, test_path)
     
-    model.compile(Adam(lr=.0002),
+    model.compile(Adam(lr=.0001),
                 loss='categorical_crossentropy',
                 metrics=['accuracy'])
 
     # TRAINING OF CNN
-    model.fit_generator(train_batches, steps_per_epoch=6,
+    model.fit_generator(train_batches, steps_per_epoch=16,
                         validation_data=valid_batches,
-                        validation_steps=2, 
-                        epochs=5, # best is 20 with 83% 
+                        validation_steps=4, 
+                        epochs=29, # best is 29 ... 93%
                         verbose=2)
 
     test_imgs, test_labels = next(test_batches)
     # np.set_printoptions(threshold=sys.maxsize)
     # print(test_labels)
-    test_loss = model.evaluate(test_imgs, test_labels, steps=1)
+    test_loss = model.evaluate(test_imgs, test_labels, steps=2)
 
     print(model.metrics_names)
     print(test_loss)
@@ -144,9 +144,23 @@ def execute_training(model_path, weights_path):
 
 
 
+def get_filenames(*, path, suffix='.png'):
+    """ Iterate through directories and yield classes and filenames """
+    for fldr in sorted(os.listdir(path), key=lambda fldr: int(fldr)):
+        clss = fldr
+        folder = os.path.join(path, fldr)
+        # check if it is a folder 
+        if os.path.isdir(folder):            
+            for fl in sorted(os.listdir(folder)):
+                file = os.path.join(folder, fl)
+                # check if it is a file with specified suffix 
+                if os.path.isfile(file) and file.endswith(suffix):
+                    yield clss, file
+
+
 def execute_prediction(model_path, weights_path):
     
-    test_path = 'data/dev_pics_resized_224'
+    test_path = 'data/eval_pics_resized_224'
     
     # load json and create model
     json_file = open(model_path, 'r')
@@ -157,14 +171,15 @@ def execute_prediction(model_path, weights_path):
     model.load_weights(weights_path)
     print("Loaded model from", model_path, weights_path)
 
-    classes = [str(i) for i in range(1, 32)]
-    test_batches = ImageDataGenerator().flow_from_directory(test_path, 
-                                                            target_size=(224,224),
-                                                            classes=classes,
-                                                            batch_size=62)
-
-    # PREDICTION on test_batches
-    predictions = model.predict_generator(test_batches, steps=1, verbose=2)
-
+    predictions = []
+    for ff in sorted(os.listdir(test_path)):
+        file = os.path.join(test_path, ff)
+        print(file)
+        img = load_img(file, target_size=(224, 224))
+        img = img_to_array(img)
+        img = np.expand_dims(img, axis=0)
+        pred = model.predict(img)[0,:]
+        predictions.append(np.log(pred))       
+        
     return predictions
 
