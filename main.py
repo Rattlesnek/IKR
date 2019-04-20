@@ -84,3 +84,5 @@ if __name__ == '__main__':
     elif args.predict:
         results = prediction(args.model)
         print_results(args.model, results)
+        os.system("python2 speech.py 1>/dev/null 2>/dev/null")
+
