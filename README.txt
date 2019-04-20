@@ -23,7 +23,7 @@ Instead of "MODEL" insert one of the following available models.
 Face recognition models:
 * VGG       - model created from VGG-Face model using "transfer learing" technique
 * VGG+SVM   - model created using VGG-Face model as image encoder followed by SVM for classification
-* HOG+SVM   - model created using HoG in combination with SVM
+* HOG+SVM   - (not working properly - loading pictures in bad order) model created using HoG in combination with SVM
 
 
 

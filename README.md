@@ -19,7 +19,7 @@ The model must be specified using `-m MODEL` or `--model MODEL`. Instead of `MOD
 ### Face recognition models:
 * `VGG` - model created from **VGG-Face** model using "transfer learing" technique
 * `VGG+SVM` - model created using **VGG-Face** model as image encoder followed by **SVM** for classification
-* `HOG+SVM` - model created using **HoG** in combination with **SVM**
+* `HOG+SVM` - (not working properly - loading pictures in bad order) model created using **HoG** in combination with **SVM**
 
 
 ## Dependencies
